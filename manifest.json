@@ -1,0 +1,28 @@
+{
+  "name": "Theekshana // 3D Workout Suite",
+  "short_name": "Workout3D",
+  "description": "Mobile-First 3D Machine & Free-Weight Workout Suite with offline device caching, dual Firebase sync, and 3-month progression charts.",
+  "start_url": "/",
+  "id": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#030712",
+  "theme_color": "#030712",
+  "lang": "en",
+  "categories": ["fitness", "health", "sports"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

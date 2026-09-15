@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Theekshana Workout Suite & Progress Tracker</title>
+
+  <meta name="theme-color" content="#030712" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+
+  <!-- Environment Variables Loader (Serves local .env or fallback) -->
+  <script src="/env.js"></script>
+
+  <!-- Google Fonts: Outfit & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Outfit', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#ecfeff',
+              100: '#cffafe',
+              400: '#22d3ee',
+              500: '#06b6d4',
+              600: '#0891b2',
+              900: '#164e63',
+              950: '#083344',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: #030712;
+      color: #f1f5f9;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #030712;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #06b6d4;
+    }
+
+    /* Glassmorphism */
+    .glass-card {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(51, 65, 85, 0.45);
+    }
+
+    .glass-card-active {
+      background: rgba(15, 23, 42, 0.95);
+      border-color: rgba(6, 182, 212, 0.65);
+      box-shadow: 0 0 20px -3px rgba(6, 182, 212, 0.15);
+    }
+
+    /* Accordion transitions */
+    .accordion-content {
+      transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+      overflow: hidden;
+    }
+
+    /* Side Drawer Animation */
+    #side-drawer {
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #drawer-backdrop {
+      transition: opacity 0.3s ease;
+    }
+
+    /* Input focus glow */
+    input:focus {
+      outline: none;
+      border-color: #06b6d4;
+      box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.25);
+    }
+
+    /* Pulse animation for active timer */
+    @keyframes timerPulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.92;
+        transform: scale(1.02);
+      }
+    }
+
+    .timer-pulsing {
+      animation: timerPulse 1.2s infinite ease-in-out;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen flex flex-col selection:bg-cyan-500 selection:text-slate-950">
+
+  <!-- ================= TOP BAR & DATE HEADER ================= -->
+  <header class="sticky top-0 z-40 bg-slate-950/85 backdrop-blur-md border-b border-slate-800/80 px-4 py-2.5">
+    <div class="max-w-4xl mx-auto flex items-center justify-between gap-3">
+
+      <!-- Left: Menu Trigger & Brand -->
+      <div class="flex items-center gap-3">
+        <button id="open-drawer-btn" aria-label="Open Navigation Menu"
+          class="p-2 -ml-1 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-cyan-400 hover:border-cyan-500/50 transition">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+            <span class="font-extrabold text-sm sm:text-base tracking-wider text-cyan-400 font-mono">THEEKSHANA //
+              3D</span>
+          </div>
+          <p class="text-[10px] text-slate-400 font-mono">171cm • 69kg • Recomp</p>
+        </div>
+      </div>
+
+      <!-- Center / Right: Simple Date Display & Sync Indicator -->
+      <div class="flex flex-col items-end">
+        <!-- Date shown simply at the top as requested -->
+        <div
+          class="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-100 bg-slate-900/90 px-3 py-1 rounded-lg border border-slate-800 shadow-sm">
+          <i data-lucide="calendar" class="w-3.5 h-3.5 text-cyan-400"></i>
+          <span id="current-date-display" class="tracking-wide">Loading Date...</span>
+        </div>
+        <!-- Storage & Cloud Sync Status -->
+        <div id="sync-status-badge" class="flex items-center gap-1 text-[9px] text-slate-400 mt-1 font-mono">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          <span>Cloud & Cache Synced</span>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ================= SLIDE-OUT SIDE PANEL (DRAWER) ================= -->
+  <div id="drawer-backdrop" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden opacity-0"></div>
+  <aside id="side-drawer"
+    class="fixed top-0 left-0 bottom-0 w-80 max-w-[85vw] bg-slate-900 border-r border-slate-800 z-50 transform -translate-x-full shadow-2xl flex flex-col">
+    <!-- Drawer Header -->
+    <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+      <div>
+        <h3 class="font-black text-cyan-400 tracking-wider text-base font-mono">WORKOUT SUITE</h3>
+        <p class="text-xs text-slate-400 mt-0.5">Select Day or View Progress</p>
+      </div>
+      <button id="close-drawer-btn" aria-label="Close Menu"
+        class="p-2 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <!-- Navigation Menu Items -->
+    <nav class="p-4 flex-1 space-y-2 overflow-y-auto">
+      <button onclick="switchView('day-1')" id="nav-day-1"
+        class="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-left font-semibold text-sm transition border border-slate-800 hover:border-cyan-500/40 bg-slate-800/40 text-slate-200">
+        <span
+          class="w-8 h-8 rounded-lg bg-cyan-950/80 border border-cyan-700/50 flex items-center justify-center text-cyan-400 font-bold">1</span>
+        <div class="flex-1">
+          <div class="text-white font-bold">Day 1: Upper Body</div>
+          <div class="text-[11px] text-slate-400">Monday • Chest, Back, Arms</div>
+        </div>
+        <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+      </button>
+
+      <button onclick="switchView('day-2')" id="nav-day-2"
+        class="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-left font-semibold text-sm transition border border-slate-800 hover:border-cyan-500/40 bg-slate-800/40 text-slate-200">
+        <span
+          class="w-8 h-8 rounded-lg bg-amber-950/80 border border-amber-700/50 flex items-center justify-center text-amber-400 font-bold">2</span>
+        <div class="flex-1">
+          <div class="text-white font-bold">Day 2: Leg Day</div>
+          <div class="text-[11px] text-slate-400">Wednesday • Quads, Hamstrings, Calves</div>
+        </div>
+        <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+      </button>
+
+      <button onclick="switchView('day-3')" id="nav-day-3"
+        class="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-left font-semibold text-sm transition border border-slate-800 hover:border-cyan-500/40 bg-slate-800/40 text-slate-200">
+        <span
+          class="w-8 h-8 rounded-lg bg-emerald-950/80 border border-emerald-700/50 flex items-center justify-center text-emerald-400 font-bold">3</span>
+        <div class="flex-1">
+          <div class="text-white font-bold">Day 3: Full Body</div>
+          <div class="text-[11px] text-slate-400">Friday • Power & Conditioning</div>
+        </div>
+        <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+      </button>
+
+      <div class="pt-2 pb-1">
+        <div class="border-t border-slate-800"></div>
+      </div>
+
+      <button onclick="switchView('progress')" id="nav-progress"
+        class="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-left font-semibold text-sm transition border border-slate-800 hover:border-purple-500/50 bg-purple-950/20 text-purple-200">
+        <span
+          class="w-8 h-8 rounded-lg bg-purple-900/60 border border-purple-500/50 flex items-center justify-center text-purple-300 font-bold">
+          <i data-lucide="trending-up" class="w-4 h-4"></i>
+        </span>
+        <div class="flex-1">
+          <div class="text-purple-300 font-bold">Progress Analytics</div>
+          <div class="text-[11px] text-slate-400">3-Month Weight & Reps Charts</div>
+        </div>
+        <i data-lucide="chevron-right" class="w-4 h-4 text-purple-400"></i>
+      </button>
+    </nav>
+
+    <!-- Drawer Footer -->
+    <div class="p-4 border-t border-slate-800 bg-slate-950/50 space-y-2">
+      <div class="flex items-center justify-between text-[11px] text-slate-400 font-mono">
+        <span>WorkoutX API:</span>
+        <span class="text-emerald-400 font-semibold">Active (wx_...4193)</span>
+      </div>
+      <div class="flex items-center justify-between text-[11px] text-slate-400 font-mono">
+        <span>Firebase Cloud:</span>
+        <span class="text-cyan-400 font-semibold">temp-81ca8</span>
+      </div>
+      <button onclick="exportUserData()"
+        class="w-full py-2 px-3 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition flex items-center justify-center gap-1.5 mt-2">
+        <i data-lucide="download" class="w-3.5 h-3.5"></i> Export Workout Backup (JSON)
+      </button>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN CONTENT CONTAINER ================= -->
+  <main class="flex-1 max-w-4xl w-full mx-auto px-3.5 py-4">
+
+    <!-- ================= WORKOUT VIEW (Day 1 / Day 2 / Day 3) ================= -->
+    <section id="workout-view" class="space-y-4">
+
+      <!-- Day Hero Card -->
+      <div class="glass-card rounded-2xl p-4 sm:p-5 border border-slate-800/90 relative overflow-hidden">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <div class="flex items-center gap-2.5">
+            <span id="day-badge-icon"
+              class="px-2.5 py-1 rounded-lg font-mono font-bold text-xs bg-cyan-950 text-cyan-300 border border-cyan-800/80">DAY
+              1</span>
+            <h1 id="day-main-heading" class="text-lg sm:text-xl font-black text-white tracking-wide">Upper Body Power
+            </h1>
+          </div>
+          <span id="day-duration-badge"
+            class="text-[11px] font-mono bg-slate-800/90 text-slate-300 px-2.5 py-1 rounded-full border border-slate-700">1
+            HR 30 MIN</span>
+        </div>
+        <p id="day-guidelines-text" class="text-xs text-slate-300 leading-relaxed font-normal">
+          Focus on strict tempo and full pectoral stretch. Hydrate with 3.5L-4L water daily.
+        </p>
+      </div>
+
+      <!-- Categorized Exercises Container (Warmup, Main, Cooldown) -->
+      <div id="exercises-accordion-container" class="space-y-3.5">
+        <!-- Rendered dynamically via app.js -->
+      </div>
+    </section>
+
+
+    <!-- ================= PROGRESS VIEW (Day 1 / Day 2 / Day 3 Charts) ================= -->
+    <section id="progress-view" class="space-y-5 hidden">
+
+      <!-- Progress Header -->
+      <div class="glass-card rounded-2xl p-4 sm:p-5 border border-purple-900/40">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <i data-lucide="line-chart" class="w-5 h-5 text-purple-400"></i>
+              <h1 class="text-lg sm:text-xl font-black text-white">3-Month Progression Analytics</h1>
+            </div>
+            <p class="text-xs text-slate-300 mt-1">
+              පසුගිය මාස 3 තුළ සෑම workout එකකම බර (Weight kg) සහ Reps වැඩි වූ ආකාරය (Progressive Overload)
+            </p>
+          </div>
+
+          <!-- Day Switcher within Progress View as requested! -->
+          <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-800 gap-1">
+            <button onclick="renderProgressChartsForDay(1)" id="prog-tab-1"
+              class="px-3 py-1.5 text-xs font-bold rounded-lg transition bg-cyan-500 text-slate-950 shadow">Day
+              1</button>
+            <button onclick="renderProgressChartsForDay(2)" id="prog-tab-2"
+              class="px-3 py-1.5 text-xs font-semibold rounded-lg transition text-slate-400 hover:text-white">Day
+              2</button>
+            <button onclick="renderProgressChartsForDay(3)" id="prog-tab-3"
+              class="px-3 py-1.5 text-xs font-semibold rounded-lg transition text-slate-400 hover:text-white">Day
+              3</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selected Day Progress Title & Stats -->
+      <div class="flex items-center justify-between px-1">
+        <h2 id="progress-day-title" class="text-sm font-bold text-slate-200 flex items-center gap-2">
+          <i data-lucide="dumbbell" class="w-4 h-4 text-cyan-400"></i> Day 1 Exercises Charts
+        </h2>
+        <span
+          class="text-[11px] font-mono text-purple-400 bg-purple-950/60 border border-purple-800/50 px-2.5 py-0.5 rounded-full">
+          12 Weeks Timeline
+        </span>
+      </div>
+
+      <!-- Charts Grid for all workouts of the active day -->
+      <div id="charts-grid-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Rendered dynamically via app.js -->
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ================= FLOATING REST TIMER PILL (When Minimized) ================= -->
+  <div id="floating-timer-dock" class="fixed bottom-4 right-4 z-40 hidden">
+    <div
+      class="bg-slate-900/95 border border-cyan-500/70 shadow-2xl rounded-2xl px-4 py-2.5 flex items-center gap-3 backdrop-blur-md">
+      <div class="flex items-center gap-2">
+        <i data-lucide="timer" class="w-4 h-4 text-cyan-400 animate-spin"></i>
+        <div>
+          <div class="text-[10px] uppercase font-mono text-slate-400 font-bold" id="dock-timer-name">Resting</div>
+          <div class="text-base font-black font-mono text-cyan-400" id="dock-timer-time">00:45</div>
+        </div>
+      </div>
+      <button onclick="cancelActiveTimer()" class="p-1 text-slate-400 hover:text-rose-400 transition"
+        title="Stop Timer">
+        <i data-lucide="square" class="w-3.5 h-3.5"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- App Main Logic -->
+  <script type="module" src="app.js"></script>
+
+  <!-- Service Worker Registration for PWA Offline -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((reg) => console.log('Service Worker registered successfully:', reg.scope))
+          .catch((err) => console.warn('Service Worker registration note:', err));
+      });
+    }
+  </script>
+</body>
+
+</html>

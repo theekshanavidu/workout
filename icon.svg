@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#090d16"/>
+      <stop offset="100%" stop-color="#030712"/>
+    </linearGradient>
+    <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#0891b2"/>
+    </linearGradient>
+    <linearGradient id="glowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background Rounded Squircle -->
+  <rect width="512" height="512" rx="110" fill="url(#bgGrad)" stroke="#1e293b" stroke-width="8"/>
+  
+  <!-- Subtle Background Glow Circle -->
+  <circle cx="256" cy="256" r="170" fill="url(#glowGrad)"/>
+
+  <!-- Stylized Dumbbell / 3D Fitness Emblem -->
+  <g transform="translate(256, 256) rotate(-45)">
+    <!-- Central Bar -->
+    <rect x="-110" y="-12" width="220" height="24" rx="12" fill="#e2e8f0"/>
+    
+    <!-- Left Inner Collar -->
+    <rect x="-70" y="-30" width="16" height="60" rx="8" fill="#94a3b8"/>
+    <!-- Left Main Weight Plate -->
+    <rect x="-110" y="-75" width="26" height="150" rx="13" fill="url(#cyanGrad)"/>
+    <!-- Left Outer Weight Plate -->
+    <rect x="-135" y="-55" width="16" height="110" rx="8" fill="#0e7490"/>
+
+    <!-- Right Inner Collar -->
+    <rect x="54" y="-30" width="16" height="60" rx="8" fill="#94a3b8"/>
+    <!-- Right Main Weight Plate -->
+    <rect x="84" y="-75" width="26" height="150" rx="13" fill="url(#cyanGrad)"/>
+    <!-- Right Outer Weight Plate -->
+    <rect x="119" y="-55" width="16" height="110" rx="8" fill="#0e7490"/>
+  </g>
+
+  <!-- 3D Holographic Cube Accent Overlay -->
+  <path d="M256 120 L330 162 L330 250 L256 292 L182 250 L182 162 Z" fill="none" stroke="#22d3ee" stroke-width="4" stroke-dasharray="6,6" opacity="0.6"/>
+  <line x1="256" y1="205" x2="256" y2="292" stroke="#22d3ee" stroke-width="3" opacity="0.6"/>
+  <line x1="256" y1="205" x2="182" y2="162" stroke="#22d3ee" stroke-width="3" opacity="0.6"/>
+  <line x1="256" y1="205" x2="330" y2="162" stroke="#22d3ee" stroke-width="3" opacity="0.6"/>
+
+  <!-- Brand Typography -->
+  <text x="256" y="430" text-anchor="middle" font-family="'JetBrains Mono', 'Segoe UI', monospace" font-size="34" font-weight="900" fill="#22d3ee" letter-spacing="4">THEEKSHANA</text>
+  <text x="256" y="460" text-anchor="middle" font-family="'JetBrains Mono', 'Segoe UI', monospace" font-size="18" font-weight="700" fill="#94a3b8" letter-spacing="3">3D WORKOUT SUITE</text>
+</svg>
