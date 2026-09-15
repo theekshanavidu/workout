@@ -12,16 +12,8 @@
   <link rel="manifest" href="./manifest.json" />
   <link rel="icon" type="image/svg+xml" href="./icon.svg" />
 
-  <!-- Environment Variables Loader (Checks ./env.js if present) -->
-  <script>
-    // Safe loader for env.js (handles GitHub Pages static hosting gracefully)
-    const envScript = document.createElement('script');
-    envScript.src = './env.js';
-    envScript.onerror = () => {
-      console.log('Static host note: env.js not present, using device storage / UI settings.');
-    };
-    document.head.appendChild(envScript);
-  </script>
+  <!-- Environment Variables Loader (Injected securely by GitHub Actions or local server) -->
+  <script src="./env.js"></script>
 
   <!-- Google Fonts: Outfit & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
