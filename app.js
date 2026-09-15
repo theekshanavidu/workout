@@ -7,21 +7,38 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // ----------------------------------------------------------------------------
-// 1. CONFIGURATIONS & WORKOUTX API INTEGRATION (Exclusively from .env)
+// 1. CONFIGURATIONS & WORKOUTX API INTEGRATION (.env or Private Device Storage)
 // ----------------------------------------------------------------------------
 const env = (typeof window !== "undefined" && window.__ENV__) || {};
 
-// Loaded exclusively from .env (no hardcoded keys)
-const WORKOUTX_API_KEY = env.WORKOUTX_API_KEY || "";
+// Read from .env OR user's device settings (for GitHub Pages static hosting)
+let localSavedEnv = {};
+try {
+  localSavedEnv = JSON.parse(localStorage.getItem("theekshana_user_env_keys") || "{}");
+} catch {}
+
+const WORKOUTX_API_KEY = env.WORKOUTX_API_KEY || localSavedEnv.WORKOUTX_API_KEY || "";
 
 const firebaseConfig = {
-  apiKey: env.FIREBASE_API_KEY || "",
-  authDomain: env.FIREBASE_AUTH_DOMAIN || "",
-  projectId: env.FIREBASE_PROJECT_ID || "",
-  storageBucket: env.FIREBASE_STORAGE_BUCKET || "",
-  messagingSenderId: env.FIREBASE_MESSAGING_SENDER_ID || "",
-  appId: env.FIREBASE_APP_ID || "",
-  measurementId: env.FIREBASE_MEASUREMENT_ID || ""
+  apiKey: env.FIREBASE_API_KEY || localSavedEnv.FIREBASE_API_KEY || "",
+  authDomain: env.FIREBASE_AUTH_DOMAIN || localSavedEnv.FIREBASE_AUTH_DOMAIN || "",
+  projectId: env.FIREBASE_PROJECT_ID || localSavedEnv.FIREBASE_PROJECT_ID || "",
+  storageBucket: env.FIREBASE_STORAGE_BUCKET || localSavedEnv.FIREBASE_STORAGE_BUCKET || "",
+  messagingSenderId: env.FIREBASE_MESSAGING_SENDER_ID || localSavedEnv.FIREBASE_MESSAGING_SENDER_ID || "",
+  appId: env.FIREBASE_APP_ID || localSavedEnv.FIREBASE_APP_ID || "",
+  measurementId: env.FIREBASE_MEASUREMENT_ID || localSavedEnv.FIREBASE_MEASUREMENT_ID || ""
+};
+
+// Functions to save API keys privately on the device (ideal for GitHub Pages)
+window.saveDeviceApiKey = function(key) {
+  const current = JSON.parse(localStorage.getItem("theekshana_user_env_keys") || "{}");
+  current.WORKOUTX_API_KEY = (key || "").trim();
+  localStorage.setItem("theekshana_user_env_keys", JSON.stringify(current));
+  location.reload();
+};
+
+window.getDeviceApiKey = function() {
+  return WORKOUTX_API_KEY;
 };
 
 // Initialize Firebase only if valid environment keys are provided
@@ -33,12 +50,12 @@ if (firebaseConfig.apiKey && firebaseConfig.projectId) {
     const firebaseApp = initializeApp(firebaseConfig);
     db = getFirestore(firebaseApp);
     firebaseInitialized = true;
-    console.log("Firebase Firestore connected via .env configuration.");
+    console.log("Firebase Firestore connected via .env / device configuration.");
   } catch (err) {
     console.warn("Firebase initialization warning (continuing with LocalStorage):", err);
   }
 } else {
-  console.log("Firebase keys not configured in .env. Operating in LocalStorage mode.");
+  console.log("Firebase keys not configured. Operating in local device cache mode.");
 }
 
 // ----------------------------------------------------------------------------
@@ -949,6 +966,7 @@ window.toggleAccordion = function(exerciseId) {
       }
     }, 50);
   }
+};
 // ----------------------------------------------------------------------------
 // PERSISTENT 3D GIF CACHE MANAGER (Saves 500 requests/month quota forever)
 // ----------------------------------------------------------------------------

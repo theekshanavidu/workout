@@ -1,15 +1,15 @@
 // ============================================================================
 // THEEKSHANA // 3D WORKOUT SUITE - SERVICE WORKER
-// Enables offline installation and local caching
+// Enables offline installation and local caching (GitHub Pages compatible)
 // ============================================================================
 
-const CACHE_NAME = "theekshana-workout-suite-v1";
+const CACHE_NAME = "theekshana-workout-suite-v2";
 const STATIC_ASSETS = [
-  "/",
-  "/index.html",
-  "/app.js",
-  "/manifest.json",
-  "/icon.svg"
+  "./",
+  "./index.html",
+  "./app.js",
+  "./manifest.json",
+  "./icon.svg"
 ];
 
 self.addEventListener("install", (event) => {
@@ -38,7 +38,7 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
   // Let WorkoutX 3D gifs be handled by the app's dedicated cache manager
-  if (url.hostname.includes("api.workoutxapp.com")) {
+  if (url.hostname.includes("api.workoutxapp.com") || url.hostname.includes("workoutx-device-storage")) {
     return;
   }
 
@@ -56,7 +56,7 @@ self.addEventListener("fetch", (event) => {
         return networkResponse;
       }).catch(() => {
         if (event.request.mode === "navigate") {
-          return caches.match("/index.html");
+          return caches.match("./index.html");
         }
       });
     })

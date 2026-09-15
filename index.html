@@ -7,13 +7,21 @@
   <title>Theekshana Workout Suite & Progress Tracker</title>
 
   <meta name="theme-color" content="#030712" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <link rel="manifest" href="/manifest.json" />
-  <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="./icon.svg" />
 
-  <!-- Environment Variables Loader (Serves local .env or fallback) -->
-  <script src="/env.js"></script>
+  <!-- Environment Variables Loader (Checks ./env.js if present) -->
+  <script>
+    // Safe loader for env.js (handles GitHub Pages static hosting gracefully)
+    const envScript = document.createElement('script');
+    envScript.src = './env.js';
+    envScript.onerror = () => {
+      console.log('Static host note: env.js not present, using device storage / UI settings.');
+    };
+    document.head.appendChild(envScript);
+  </script>
 
   <!-- Google Fonts: Outfit & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -370,7 +378,7 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
+        navigator.serviceWorker.register('./sw.js', { scope: './' })
           .then((reg) => console.log('Service Worker registered successfully:', reg.scope))
           .catch((err) => console.warn('Service Worker registration note:', err));
       });
