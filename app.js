@@ -968,9 +968,56 @@ window.toggleAccordion = function(exerciseId) {
   }
 };
 // ----------------------------------------------------------------------------
-// PERSISTENT 3D GIF CACHE MANAGER (Saves 500 requests/month quota forever)
+// PERSISTENT 3D GIF CACHE MANAGER (Dual-Layer: Cache Storage + IndexedDB)
+// Saves 500 requests/month quota forever on Web and Android WebView App
 // ----------------------------------------------------------------------------
 const GIF_CACHE_NAME = "workoutx-3d-gifs-v3";
+
+// IndexedDB Helper for Android WebView and persistent disk storage
+function openWorkoutGifDB() {
+  return new Promise((resolve) => {
+    if (typeof window === "undefined" || !window.indexedDB) return resolve(null);
+    try {
+      const request = indexedDB.open("workoutx_idb_cache_v1", 1);
+      request.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains("gifs")) {
+          db.createObjectStore("gifs");
+        }
+      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => resolve(null);
+    } catch {
+      resolve(null);
+    }
+  });
+}
+
+async function getIdbGifBlob(key) {
+  try {
+    const db = await openWorkoutGifDB();
+    if (!db) return null;
+    return new Promise((resolve) => {
+      const tx = db.transaction("gifs", "readonly");
+      const store = tx.objectStore("gifs");
+      const req = store.get(key);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => resolve(null);
+    });
+  } catch {
+    return null;
+  }
+}
+
+async function setIdbGifBlob(key, blob) {
+  try {
+    const db = await openWorkoutGifDB();
+    if (!db) return;
+    const tx = db.transaction("gifs", "readwrite");
+    const store = tx.objectStore("gifs");
+    store.put(blob, key);
+  } catch {}
+}
 
 async function loadExercise3DVisual(ex) {
   const imgElem = document.getElementById(`gif-img-${ex.id}`);
@@ -987,35 +1034,57 @@ async function loadExercise3DVisual(ex) {
   const apiUrl = `https://api.workoutxapp.com/v1/gifs/${ex.workoutXId}.gif?api-key=${WORKOUTX_API_KEY}`;
 
   try {
+    // LAYER 1: Check CacheStorage API (PWA & modern browsers)
     if ('caches' in window) {
       const cache = await caches.open(GIF_CACHE_NAME);
       const cached = await cache.match(cacheKey);
 
       if (cached) {
-        // LOADED 100% FROM DEVICE STORAGE (0 API REQUESTS!)
         const blob = await cached.blob();
         imgElem.src = URL.createObjectURL(blob);
         if (badgeElem) {
-          badgeElem.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> 💾 Saved on Device (0 API Calls)`;
+          badgeElem.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> 💾 Saved in App Cache (0 API Calls)`;
         }
         return;
       }
+    }
 
-      // First time loading on this device: Fetch once from API and cache permanently
+    // LAYER 2: Check IndexedDB Device Storage (Guaranteed in Android WebView)
+    const idbBlob = await getIdbGifBlob(ex.workoutXId);
+    if (idbBlob) {
+      imgElem.src = URL.createObjectURL(idbBlob);
       if (badgeElem) {
-        badgeElem.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span> Fetching & Saving to Device...`;
+        badgeElem.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> 💾 Saved in App Storage (0 API Calls)`;
+      }
+      return;
+    }
+
+    // First time loading on this device: Fetch once from API and cache in BOTH layers permanently
+    if (badgeElem) {
+      badgeElem.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span> Fetching & Saving to Device...`;
+    }
+
+    const res = await fetch(apiUrl);
+    if (res.ok) {
+      const resClone = res.clone();
+      const blob = await res.blob();
+
+      // Save to CacheStorage
+      if ('caches' in window) {
+        try {
+          const cache = await caches.open(GIF_CACHE_NAME);
+          await cache.put(cacheKey, resClone);
+        } catch {}
       }
 
-      const res = await fetch(apiUrl);
-      if (res.ok) {
-        await cache.put(cacheKey, res.clone());
-        const blob = await res.blob();
-        imgElem.src = URL.createObjectURL(blob);
-        if (badgeElem) {
-          badgeElem.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> 💾 Saved on Device (#${ex.workoutXId})`;
-        }
-        return;
+      // Save to IndexedDB (Android disk storage)
+      await setIdbGifBlob(ex.workoutXId, blob);
+
+      imgElem.src = URL.createObjectURL(blob);
+      if (badgeElem) {
+        badgeElem.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> 💾 Saved in App Cache (#${ex.workoutXId})`;
       }
+      return;
     }
   } catch (err) {
     console.warn("Device cache storage note:", err);
@@ -1030,6 +1099,7 @@ async function loadExercise3DVisual(ex) {
   };
   imgElem.src = apiUrl;
 }
+
 
 // Generate inside content of expanded exercise (Direct WorkoutX 3D GIF, cues, rest timer, in-place set logger)
 function generateExpandedExerciseHTML(ex, existingLogs) {
