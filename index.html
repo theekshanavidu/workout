@@ -257,18 +257,51 @@
     <div class="p-4 border-t border-slate-800 bg-slate-950/50 space-y-2">
       <div class="flex items-center justify-between text-[11px] text-slate-400 font-mono">
         <span>WorkoutX API:</span>
-        <span class="text-emerald-400 font-semibold">Active (wx_...4193)</span>
+        <span id="drawer-api-status" class="text-emerald-400 font-semibold">Active</span>
       </div>
       <div class="flex items-center justify-between text-[11px] text-slate-400 font-mono">
-        <span>Firebase Cloud:</span>
-        <span class="text-cyan-400 font-semibold">temp-81ca8</span>
+        <span>Storage Mode:</span>
+        <span class="text-cyan-400 font-semibold">Device Cache</span>
       </div>
+      <button onclick="openApiKeyModal()"
+        class="w-full py-2 px-3 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-700 font-medium transition flex items-center justify-center gap-1.5 mt-2">
+        <i data-lucide="key" class="w-3.5 h-3.5"></i> API Key Settings (Device)
+      </button>
       <button onclick="exportUserData()"
-        class="w-full py-2 px-3 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition flex items-center justify-center gap-1.5 mt-2">
+        class="w-full py-2 px-3 text-xs rounded-lg bg-slate-800/60 hover:bg-slate-700 text-slate-300 font-medium transition flex items-center justify-center gap-1.5">
         <i data-lucide="download" class="w-3.5 h-3.5"></i> Export Workout Backup (JSON)
       </button>
     </div>
   </aside>
+
+  <!-- API Key Settings Modal (For GitHub Pages & Device Storage) -->
+  <div id="apikey-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="glass-card rounded-2xl p-5 border border-cyan-500/50 max-w-sm w-full space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-bold text-white text-sm flex items-center gap-2 font-mono">
+          <i data-lucide="key" class="w-4 h-4 text-cyan-400"></i> API Key Settings
+        </h3>
+        <button onclick="closeApiKeyModal()" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <p class="text-xs text-slate-300 leading-relaxed">
+        GitHub Pages භාවිතයේදී ඔබගේ WorkoutX API Key එක පහතින් ඇතුළත් කර Save කරන්න. එය ඔබගේ phone/device එකේ පමණක් සුරැකෙන අතර කිසිවිටෙකත් GitHub වෙත නොයයි.
+      </p>
+      <div>
+        <label class="block text-[11px] font-mono text-slate-400 mb-1">WorkoutX API Key (wx_...)</label>
+        <input id="device-apikey-input" type="password" placeholder="wx_..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-white focus:border-cyan-400" />
+      </div>
+      <div class="flex gap-2 pt-1">
+        <button onclick="saveApiKeyFromModal()" class="flex-1 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs rounded-lg transition font-mono">
+          Save to Device
+        </button>
+        <button onclick="closeApiKeyModal()" class="px-3 py-2 bg-slate-800 text-slate-300 text-xs rounded-lg transition">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- ================= MAIN CONTENT CONTAINER ================= -->
   <main class="flex-1 max-w-4xl w-full mx-auto px-3.5 py-4">

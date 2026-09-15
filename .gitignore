@@ -1,32 +1,44 @@
 # ============================================================================
 # .gitignore - Theekshana Workout Suite
-# Files and directories that should NEVER be pushed to GitHub
+# Files and directories filtered out from Git tracking
 # ============================================================================
 
-# 1. Environment variables & API Secrets
+# 1. Environment variables & Secrets (Never commit credentials!)
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 env.js
 firebase.txt
+*.pem
+*.key
+*.cert
+*.p12
 
-# 2. Temporary & Scratch files
+# 2. Temporary & Gemini scratch files
 gemini-code-*.html
 *.temp
 *.tmp
 *.log
-.system_generated/
 npm-debug.log*
 yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.system_generated/
+.cache/
 
 # 3. Dependencies
 node_modules/
 
-# 4. OS metadata
+# 4. OS & Filesystem Metadata
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
 Thumbs.db
 ehthumbs.db
 desktop.ini
+$RECYCLE.BIN/
 
 # 5. Editor & IDE configurations
 .vscode/
@@ -35,8 +47,11 @@ desktop.ini
 *.user
 *.useros
 *.sln.docstates
+*.swp
+*~
 
 # 6. Android Build Outputs & Local configs
+.gradle/
 android/.gradle/
 android/build/
 android/app/build/
@@ -46,7 +61,13 @@ android/*.iml
 android/app/*.iml
 android/.cxx/
 android/captures/
+android/.externalNativeBuild/
+google-services.json
 *.apk
+*.ap_
 *.aab
+*.dex
+*.class
 *.keystore
 *.jks
+
