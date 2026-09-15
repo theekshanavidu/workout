@@ -1,0 +1,12 @@
+{
+  "name": "theekshana-workout-suite",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node server.mjs"
+  },
+  "dependencies": {
+    "@workoutx/sdk": "^0.1.0"
+  }
+}
